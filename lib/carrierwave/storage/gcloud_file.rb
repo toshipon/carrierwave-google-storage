@@ -59,14 +59,17 @@ module CarrierWave
 
       def store(new_file)
         new_file_path = uploader.filename ? uploader.filename : new_file.filename
-        bucket_file = bucket.create_file(
-          new_file.path,
-          path,
-          content_type: new_file.content_type,
-          content_disposition: uploader.gcloud_content_disposition
-        )
-        bucket_file.acl.public! if uploader.gcloud_bucket_is_public
-        self
+        if new_file.is_a?(self.class)
+          new_file.copy_to(new_file_path)
+        else
+          bucket_file = bucket.create_file(
+            new_file.path,
+            path,
+            content_type: new_file.content_type,
+            content_disposition: uploader.gcloud_content_disposition
+          )
+          bucket_file.acl.public! if uploader.gcloud_bucket_is_public
+        end
       end
 
       def copy_to(new_path)
